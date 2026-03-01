@@ -10,8 +10,8 @@ const main = async () => {
   await helpers.impersonateAccount(USDCHolder);
   const impersonatedSigner = await ethers.getSigner(USDCHolder);
 
-  const amountIn = ethers.parseUnits("100", 6);
-  const amountOutMin = ethers.parseUnits("99", 18);
+  const amountOut = ethers.parseUnits("100", 18);
+  const amountInMax = ethers.parseUnits("120", 6);
   const deadline = Math.floor(Date.now() / 1000) + 300;
 
   const USDC = await ethers.getContractAt(
@@ -32,7 +32,7 @@ const main = async () => {
     impersonatedSigner
   );
 
-  await USDC.approve(UNIRouter, amountIn);
+  await USDC.approve(UNIRouter, amountInMax);
 
   const usdcBalBefore = await USDC.balanceOf(impersonatedSigner.address);
   const daiBalBefore = await DAI.balanceOf(impersonatedSigner.address);
@@ -48,9 +48,9 @@ const main = async () => {
     ethers.formatUnits(daiBalBefore, 18)
   );
 
-  const txn = await V2_ROUTER.swapExactTokensForTokens(
-    amountIn,
-    amountOutMin,
+  const txn = await V2_ROUTER.swapTokensForExactTokens(
+    amountInMax,
+    amountOut,
     [USDCAddress, DAIAddress],
     impersonatedSigner.address,
     deadline
