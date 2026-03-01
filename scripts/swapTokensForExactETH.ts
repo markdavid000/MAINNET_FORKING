@@ -3,26 +3,20 @@ import { ethers } from "hardhat";
 
 const main = async () => {
   const USDCAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-  const DAIAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+  const WETHAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const UNIRouter = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
   const USDCHolder = "0xf584f8728b874a6a5c7a8d4d387c9aae9172d621";
 
   await helpers.impersonateAccount(USDCHolder);
   const impersonatedSigner = await ethers.getSigner(USDCHolder);
 
-  const amountOut = ethers.parseUnits("100", 18);
-  const amountInMax = ethers.parseUnits("105", 6);
+  const amountOut = ethers.parseEther("0.1");
+  const amountInMax = ethers.parseUnits("200", 6);
   const deadline = Math.floor(Date.now() / 1000) + 300;
 
   const USDC = await ethers.getContractAt(
     "IERC20",
     USDCAddress,
-    impersonatedSigner
-  );
-
-  const DAI = await ethers.getContractAt(
-    "IERC20",
-    DAIAddress,
     impersonatedSigner
   );
 
@@ -35,7 +29,9 @@ const main = async () => {
   await USDC.approve(UNIRouter, amountInMax);
 
   const usdcBalBefore = await USDC.balanceOf(impersonatedSigner.address);
-  const daiBalBefore = await DAI.balanceOf(impersonatedSigner.address);
+  const ethBalBefore = await ethers.provider.getBalance(
+    impersonatedSigner.address
+  );
 
   console.log("=================Before======================================");
 
@@ -44,14 +40,14 @@ const main = async () => {
     ethers.formatUnits(usdcBalBefore, 6)
   );
   console.log(
-    "DAI Balance before swapping:",
-    ethers.formatUnits(daiBalBefore, 18)
+    "WETH Balance before swapping:",
+    ethers.formatEther(ethBalBefore)
   );
 
-  const txn = await V2_ROUTER.swapTokensForExactTokens(
+  const txn = await V2_ROUTER.swapTokensForExactETH(
     amountOut,
     amountInMax,
-    [USDCAddress, DAIAddress],
+    [USDCAddress, WETHAddress],
     impersonatedSigner.address,
     deadline
   );
@@ -59,7 +55,9 @@ const main = async () => {
   await txn.wait();
 
   const usdcBalAfter = await USDC.balanceOf(impersonatedSigner.address);
-  const daiBalAfter = await DAI.balanceOf(impersonatedSigner.address);
+  const ethBalAfter = await ethers.provider.getBalance(
+    impersonatedSigner.address
+  );
 
   console.log("=================After========================================");
 
@@ -67,20 +65,17 @@ const main = async () => {
     "USDC Balance after swapping:",
     ethers.formatUnits(usdcBalAfter, 6)
   );
-  console.log(
-    "DAI Balance after swapping:",
-    ethers.formatUnits(daiBalAfter, 18)
-  );
+  console.log("WETH Balance after swapping:", ethers.formatEther(ethBalAfter));
 
   const usdcUsed = usdcBalBefore - usdcBalAfter;
-  const newDaiVal = daiBalAfter - daiBalBefore;
+  const newEthBal = ethBalAfter - ethBalBefore;
 
   console.log(
     "=================Differences========================================"
   );
 
   console.log("USDC USED: ", ethers.formatUnits(usdcUsed, 6));
-  console.log("NEW DAI BALANCE: ", ethers.formatUnits(newDaiVal, 18));
+  console.log("NEW ETH BALANCE: ", ethers.formatEther(newEthBal));
 };
 
 main().catch((error) => {
