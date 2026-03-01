@@ -7,9 +7,6 @@ const main = async () => {
   const USDCWETHPairAddress = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc";
   const USDCHolder = "0xf584f8728b874a6a5c7a8d4d387c9aae9172d621";
 
-  // Use a real Hardhat signer — impersonated accounts have no private key
-  // and cannot call signTypedData. We use deployer (Hardhat account #0) as
-  // the permit signer and fund it with USDC via the impersonated holder.
   const [deployer] = await ethers.getSigners();
 
   await helpers.impersonateAccount(USDCHolder);
@@ -33,11 +30,8 @@ const main = async () => {
   );
   const ROUTER = await ethers.getContractAt("IUniswapV2Router", UNIRouter);
 
-  // ── Step 1: Transfer USDC from whale to deployer ──────────────────────────
-  // deployer needs USDC to add liquidity so it receives LP tokens it can sign for
   await USDC.connect(impersonatedSigner).transfer(deployer.address, amountUSDC);
 
-  // ── Step 2: Add liquidity ETH — deployer receives LP tokens ──────────────
   await USDC.connect(deployer).approve(UNIRouter, amountUSDC);
 
   const addTx = await ROUTER.connect(deployer).addLiquidityETH(
@@ -52,13 +46,10 @@ const main = async () => {
   await addTx.wait();
 
   console.log("Liquidity added. LP tokens acquired by deployer.");
-  console.log("=========================================================");
 
-  // ── Step 3: Build EIP-2612 permit signature (deployer has a private key) ──
   const lpBalBefore = await LPToken.balanceOf(deployer.address);
   console.log("LP balance after add:", ethers.formatUnits(lpBalBefore, 18));
 
-  // Remove 50% — avoids rounding to zero from small LP balances
   const liquidityToRemove = lpBalBefore / BigInt(2);
 
   const amountTokenMinRemove = ethers.parseUnits("1", 6);
@@ -67,7 +58,6 @@ const main = async () => {
 
   const nonce = await LPToken.nonces(deployer.address);
   const pairName = await LPToken.name();
-  const chainId = (await ethers.provider.getNetwork()).chainId;
 
   const domain = {
     name: pairName,

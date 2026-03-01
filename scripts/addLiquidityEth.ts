@@ -10,8 +10,8 @@ const main = async () => {
   await helpers.impersonateAccount(USDCHolder);
   const impersonatedSigner = await ethers.getSigner(USDCHolder);
 
-  const amountTokenDesired = ethers.parseUnits("600", 6);
-  const amountTokenMin = ethers.parseUnits("400", 6);
+  const amountTokenDesired = ethers.parseUnits("400", 6);
+  const amountTokenMin = ethers.parseUnits("390", 6);
   const amountETHMin = ethers.parseEther("0.05");
   const amountETHDesired = ethers.parseEther("0.2");
   const deadline = Math.floor(Date.now() / 1000) + 300;

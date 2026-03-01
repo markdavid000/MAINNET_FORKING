@@ -10,7 +10,7 @@ const main = async () => {
   await helpers.impersonateAccount(USDCHolder);
   const impersonatedSigner = await ethers.getSigner(USDCHolder);
 
-  const amountOutMin = ethers.parseUnits("199", 6);
+  const amountOutMin = ethers.parseUnits("90", 6);
   const deadline = Math.floor(Date.now() / 1000) + 300;
 
   const USDC = await ethers.getContractAt(
