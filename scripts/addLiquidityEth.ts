@@ -47,7 +47,7 @@ const main = async () => {
     ethers.formatEther(ethBalBefore)
   );
 
-  const tx = await ROUTER.addLiquidityETH(
+  const addLiquidityTx = await ROUTER.addLiquidityETH(
     USDCAddress,
     amountTokenDesired,
     amountTokenMin,
@@ -56,7 +56,7 @@ const main = async () => {
     deadline,
     { value: amountETHDesired }
   );
-  await tx.wait();
+  await addLiquidityTx.wait();
 
   const usdcBalAfter = await USDC.balanceOf(impersonatedSigner.address);
   const ethBalAfter = await ethers.provider.getBalance(
