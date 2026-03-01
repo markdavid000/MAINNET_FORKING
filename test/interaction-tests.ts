@@ -3,24 +3,24 @@ import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
 
-describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
-  const ROUTER = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
+describe("Interaction Tests", function () {
+  const UNIRouter = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
 
-  const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-  const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-  const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+  const WETHAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+  const USDCAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+  const DAIAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 
-  const USDC_HOLDER = "0xf584f8728b874a6a5c7a8d4d387c9aae9172d621";
-  const DAI_HOLDER = "0x28C6c06298d514Db089934071355E5743bf21d60";
+  const USDCHolder = "0xf584f8728b874a6a5c7a8d4d387c9aae9172d621";
+  const DAIHolder = "0x28C6c06298d514Db089934071355E5743bf21d60";
 
-  const USDC_ETH_PAIR = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc";
-  const USDC_DAI_PAIR = "0xAE461cA67B15dc8dc81CE7615e0320dA1A9aB8D5";
+  const USDCWETHPairAddress = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc";
+  const USDCDAIPairAddress = "0xAE461cA67B15dc8dc81CE7615e0320dA1A9aB8D5";
 
   async function deployContractInstances() {
-    const router = await ethers.getContractAt("IUniswapV2Router", ROUTER);
-    const usdc = await ethers.getContractAt("IERC20", USDC);
-    const dai = await ethers.getContractAt("IERC20", DAI);
-    const weth = await ethers.getContractAt("IERC20", WETH);
+    const router = await ethers.getContractAt("IUniswapV2Router", UNIRouter);
+    const usdc = await ethers.getContractAt("IERC20", USDCAddress);
+    const dai = await ethers.getContractAt("IERC20", DAIAddress);
+    const weth = await ethers.getContractAt("IERC20", WETHAddress);
 
     return { router, usdc, dai, weth };
   }
@@ -28,13 +28,13 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
   it("should swapTokensForExactETH", async () => {
     const { router, usdc } = await loadFixture(deployContractInstances);
 
-    await helpers.impersonateAccount(USDC_HOLDER);
-    const signer = await ethers.getSigner(USDC_HOLDER);
+    await helpers.impersonateAccount(USDCHolder);
+    const signer = await ethers.getSigner(USDCHolder);
 
     const amountOut = ethers.parseEther("0.5");
     const amountInMax = ethers.parseUnits("2000", 6);
 
-    await usdc.connect(signer).approve(ROUTER, amountInMax);
+    await usdc.connect(signer).approve(UNIRouter, amountInMax);
 
     const ethBefore = await signer.provider!.getBalance(signer.address);
 
@@ -43,7 +43,7 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
       .swapTokensForExactETH(
         amountOut,
         amountInMax,
-        [USDC, WETH],
+        [USDCAddress, WETHAddress],
         signer.address,
         Math.floor(Date.now() / 1000) + 300
       );
@@ -55,17 +55,17 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
   it("should swapETHForExactTokens", async () => {
     const { router, usdc } = await loadFixture(deployContractInstances);
 
-    await helpers.impersonateAccount(USDC_HOLDER);
-    const signer = await ethers.getSigner(USDC_HOLDER);
+    await helpers.impersonateAccount(USDCHolder);
+    const signer = await ethers.getSigner(USDCHolder);
 
     const usdcBefore = await usdc.balanceOf(signer.address);
-    const outUSDC = ethers.parseUnits("200", 6);
+    const amountOut = ethers.parseUnits("200", 6);
 
     await router
       .connect(signer)
       .swapETHForExactTokens(
-        outUSDC,
-        [WETH, USDC],
+        amountOut,
+        [WETHAddress, USDCAddress],
         signer.address,
         Math.floor(Date.now() / 1000) + 300,
         { value: ethers.parseEther("2") }
@@ -78,8 +78,8 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
   it("should swapExactETHForTokens", async () => {
     const { router, dai } = await loadFixture(deployContractInstances);
 
-    await helpers.impersonateAccount(USDC_HOLDER);
-    const signer = await ethers.getSigner(USDC_HOLDER);
+    await helpers.impersonateAccount(USDCHolder);
+    const signer = await ethers.getSigner(USDCHolder);
 
     const daiBefore = await dai.balanceOf(signer.address);
 
@@ -87,7 +87,7 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
       .connect(signer)
       .swapExactETHForTokens(
         1,
-        [WETH, DAI],
+        [WETHAddress, DAIAddress],
         signer.address,
         Math.floor(Date.now() / 1000) + 300,
         { value: ethers.parseEther("1") }
@@ -100,18 +100,18 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
   it("should addLiquidityETH", async () => {
     const { router, usdc } = await loadFixture(deployContractInstances);
 
-    await helpers.impersonateAccount(USDC_HOLDER);
-    const signer = await ethers.getSigner(USDC_HOLDER);
+    await helpers.impersonateAccount(USDCHolder);
+    const signer = await ethers.getSigner(USDCHolder);
 
     const amountUSDC = ethers.parseUnits("2000", 6);
-    await usdc.connect(signer).approve(ROUTER, amountUSDC);
+    await usdc.connect(signer).approve(UNIRouter, amountUSDC);
 
     const usdcBefore = await usdc.balanceOf(signer.address);
 
     await router
       .connect(signer)
       .addLiquidityETH(
-        USDC,
+        USDCAddress,
         amountUSDC,
         0,
         0,
@@ -129,11 +129,11 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
 
     const [deployer] = await ethers.getSigners();
 
-    await helpers.impersonateAccount(USDC_HOLDER);
-    const usdcSigner = await ethers.getSigner(USDC_HOLDER);
+    await helpers.impersonateAccount(USDCHolder);
+    const usdcSigner = await ethers.getSigner(USDCHolder);
 
-    await helpers.impersonateAccount(DAI_HOLDER);
-    const daiSigner = await ethers.getSigner(DAI_HOLDER);
+    await helpers.impersonateAccount(DAIHolder);
+    const daiSigner = await ethers.getSigner(DAIHolder);
 
     await deployer.sendTransaction({
       to: usdcSigner.address,
@@ -149,14 +149,14 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
 
     await dai.connect(daiSigner).transfer(usdcSigner.address, amountDAI);
 
-    await usdc.connect(usdcSigner).approve(ROUTER, amountUSDC);
-    await dai.connect(usdcSigner).approve(ROUTER, amountDAI);
+    await usdc.connect(usdcSigner).approve(UNIRouter, amountUSDC);
+    await dai.connect(usdcSigner).approve(UNIRouter, amountDAI);
 
     await router
       .connect(usdcSigner)
       .addLiquidity(
-        USDC,
-        DAI,
+        USDCAddress,
+        DAIAddress,
         amountUSDC,
         amountDAI,
         0,
@@ -167,20 +167,20 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
 
     const lp = await ethers.getContractAt(
       "IUniswapV2Pair",
-      USDC_DAI_PAIR,
+      USDCDAIPairAddress,
       usdcSigner
     );
 
     const liquidity = await lp.balanceOf(usdcSigner.address);
     const removeAmount = liquidity / 2n;
 
-    await lp.approve(ROUTER, removeAmount);
+    await lp.approve(UNIRouter, removeAmount);
 
     await router
       .connect(usdcSigner)
       .removeLiquidity(
-        USDC,
-        DAI,
+        USDCAddress,
+        DAIAddress,
         removeAmount,
         0,
         0,
@@ -196,8 +196,8 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
 
     const [deployer] = await ethers.getSigners();
 
-    await helpers.impersonateAccount(USDC_HOLDER);
-    const signer = await ethers.getSigner(USDC_HOLDER);
+    await helpers.impersonateAccount(USDCHolder);
+    const signer = await ethers.getSigner(USDCHolder);
 
     await deployer.sendTransaction({
       to: signer.address,
@@ -205,12 +205,12 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
     });
 
     const amountUSDC = ethers.parseUnits("2000", 6);
-    await usdc.connect(signer).approve(ROUTER, amountUSDC);
+    await usdc.connect(signer).approve(UNIRouter, amountUSDC);
 
     await router
       .connect(signer)
       .addLiquidityETH(
-        USDC,
+        USDCAddress,
         amountUSDC,
         0,
         0,
@@ -221,19 +221,19 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
 
     const lp = await ethers.getContractAt(
       "IUniswapV2Pair",
-      USDC_ETH_PAIR,
+      USDCWETHPairAddress,
       signer
     );
     const liquidity = await lp.balanceOf(signer.address);
 
     const removeAmount = liquidity / 2n;
 
-    await lp.approve(ROUTER, removeAmount);
+    await lp.approve(UNIRouter, removeAmount);
 
     await router
       .connect(signer)
       .removeLiquidityETH(
-        USDC,
+        USDCAddress,
         removeAmount,
         0,
         0,
@@ -249,23 +249,27 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
 
     const [deployer] = await ethers.getSigners();
 
-    await helpers.impersonateAccount(USDC_HOLDER);
-    const whale = await ethers.getSigner(USDC_HOLDER);
+    await helpers.impersonateAccount(USDCHolder);
+    const whale = await ethers.getSigner(USDCHolder);
 
     const amountUSDC = ethers.parseUnits("2000", 6);
     await usdc.connect(whale).transfer(deployer.address, amountUSDC);
 
-    const usdcDeployer = await ethers.getContractAt("IERC20", USDC, deployer);
+    const usdcDeployer = await ethers.getContractAt(
+      "IERC20",
+      USDCAddress,
+      deployer
+    );
     const routerDeployer = await ethers.getContractAt(
       "IUniswapV2Router",
-      ROUTER,
+      UNIRouter,
       deployer
     );
 
-    await usdcDeployer.approve(ROUTER, amountUSDC);
+    await usdcDeployer.approve(UNIRouter, amountUSDC);
 
     await routerDeployer.addLiquidityETH(
-      USDC,
+      USDCAddress,
       amountUSDC,
       0,
       0,
@@ -276,7 +280,7 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
 
     const lp = await ethers.getContractAt(
       "IUniswapV2Pair",
-      USDC_ETH_PAIR,
+      USDCWETHPairAddress,
       deployer
     );
     const liquidity = await lp.balanceOf(deployer.address);
@@ -290,7 +294,7 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
       name: pairName,
       version: "1",
       chainId: 1,
-      verifyingContract: USDC_ETH_PAIR,
+      verifyingContract: USDCWETHPairAddress,
     };
 
     const types = {
@@ -305,7 +309,7 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
 
     const message = {
       owner: deployer.address,
-      spender: ROUTER,
+      spender: UNIRouter,
       value: removeAmount,
       nonce,
       deadline,
@@ -315,7 +319,7 @@ describe("Uniswap V2 Router – Mainnet Fork (loadFixture)", function () {
     const { v, r, s } = ethers.Signature.from(sig);
 
     await routerDeployer.removeLiquidityETHWithPermit(
-      USDC,
+      USDCAddress,
       removeAmount,
       0,
       0,
