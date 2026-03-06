@@ -23,12 +23,21 @@ const main = async () => {
   const amountETHDesired = ethers.parseEther("0.2");
   const deadline = Math.floor(Date.now() / 1000) + 300;
 
-  const USDC = await ethers.getContractAt("IERC20", USDCAddress);
+  const USDC = await ethers.getContractAt(
+    "IERC20",
+    USDCAddress,
+    impersonatedSigner
+  );
   const LPToken = await ethers.getContractAt(
     "IUniswapV2Pair",
-    USDCWETHPairAddress
+    USDCWETHPairAddress,
+    impersonatedSigner
   );
-  const ROUTER = await ethers.getContractAt("IUniswapV2Router", UNIRouter);
+  const ROUTER = await ethers.getContractAt(
+    "IUniswapV2Router",
+    UNIRouter,
+    impersonatedSigner
+  );
 
   await USDC.connect(impersonatedSigner).transfer(deployer.address, amountUSDC);
 
